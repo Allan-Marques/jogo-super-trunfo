@@ -22,7 +22,7 @@ int sorteiaJogadorInicial(const char jogador1[], const char jogador2[]);
 void embaralharCartas(Carta cartas[], int n);
 Carta removeTopCard(Carta deck[], int *count);
 void addCardToBottom(Carta deck[], int *count, Carta card);
-void exibirCarta(Carta carta);
+void exibirCartaComOpcoes(Carta carta);
 int lerEscolhaAtributo(const char *jogador);
 void pausa(void);
 void exibirTutorial(void);
@@ -76,7 +76,7 @@ int main() {
     // Loop do jogo: enquanto ambos os jogadores tiverem cartas
     while (count1 > 0 && count2 > 0) {
         printf("=== Rodada %d ===\n", round);
-        printf("Neste turno, o jogador ativo verá apenas sua carta.\n");
+        printf("Neste turno, o jogador ativo verá sua carta e as opções para escolher o atributo.\n");
 
         // Identificar o deck do jogador ativo e do oponente
         Carta *deckAtivo, *deckOponente;
@@ -98,31 +98,19 @@ int main() {
             nomeOponente = jogador1;
         }
         
-        // Mostrar somente a carta do jogador ativo
+        // Mostrar a carta do jogador ativo com as opções de atributo
         printf("\n%s, sua carta é:\n", nomeAtivo);
-        exibirCarta(deckAtivo[0]);
-        printf("\nLeia atentamente sua carta. Você NÃO verá a carta do seu oponente até escolher o atributo.\n");
-        pausa();
-        system("clear");
+        exibirCartaComOpcoes(deckAtivo[0]);
         
-        // Tutorial do turno
-        printf("Tutorial da rodada:\n");
-        printf("1. Você escolherá um atributo (População, Área, PIB ou Pontos Turísticos) para comparar.\n");
-        printf("2. Após escolher, as duas cartas serão reveladas e o atributo escolhido será comparado.\n");
-        printf("3. A carta com o maior valor nesse atributo vence a rodada e o vencedor leva ambas as cartas.\n");
-        printf("4. Em caso de empate, cada jogador recoloca sua carta no final do deck.\n");
-        pausa();
-        system("clear");
-
         // O jogador ativo escolhe o atributo para comparar
         int escolha = lerEscolhaAtributo(nomeAtivo);
         
-        // Revela ambas as cartas
+        // Revelar as cartas e comparar o atributo escolhido
         printf("\nRevelando as cartas...\n");
         printf("\nCarta de %s:\n", nomeAtivo);
-        exibirCarta(deckAtivo[0]);
+        exibirCartaComOpcoes(deckAtivo[0]);
         printf("\nCarta de %s:\n", nomeOponente);
-        exibirCarta(deckOponente[0]);
+        exibirCartaComOpcoes(deckOponente[0]);
         
         // Obter os valores para o atributo escolhido
         float valorAtivo = 0, valorOponente = 0;
@@ -154,7 +142,7 @@ int main() {
             Carta cartaOponente = removeTopCard(deckOponente, countOponente);
             addCardToBottom(deckAtivo, countAtivo, cartaAtivo);
             addCardToBottom(deckAtivo, countAtivo, cartaOponente);
-            // O jogador ativo permanece
+            printf("%s ganhou a carta de %s!\n", nomeAtivo, nomeOponente);
         } else if (valorAtivo < valorOponente) {
             printf("\n%s venceu a rodada!\n", nomeOponente);
             // O oponente ganha ambas as cartas
@@ -162,6 +150,7 @@ int main() {
             Carta cartaOponente = removeTopCard(deckOponente, countOponente);
             addCardToBottom(deckOponente, countOponente, cartaAtivo);
             addCardToBottom(deckOponente, countOponente, cartaOponente);
+            printf("%s ganhou a carta de %s!\n", nomeOponente, nomeAtivo);
             // Troca o jogador ativo
             jogadorAtual = (jogadorAtual == 0 ? 1 : 0);
         } else {
@@ -171,14 +160,16 @@ int main() {
             Carta cartaOponente = removeTopCard(deckOponente, countOponente);
             addCardToBottom(deckAtivo, countAtivo, cartaAtivo);
             addCardToBottom(deckOponente, countOponente, cartaOponente);
-            // O jogador ativo permanece
         }
         
         printf("\nCartas restantes: %s: %d, %s: %d\n", jogador1, count1, jogador2, count2);
         
-        round++;
+        // Pedir para o próximo jogador pressionar Enter
+        printf("\nPressione Enter para o próximo jogador...\n");
         pausa();
         system("clear");
+        
+        round++;
     }
     
     // Exibir o vencedor
@@ -223,7 +214,7 @@ Carta removeTopCard(Carta deck[], int *count) {
     for (int i = 1; i < *count; i++) {
         deck[i - 1] = deck[i];
     }
-    (*count)--;
+    (*count)--; 
     return top;
 }
 
@@ -232,7 +223,7 @@ void addCardToBottom(Carta deck[], int *count, Carta card) {
     (*count)++;
 }
 
-void exibirCarta(Carta carta) {
+void exibirCartaComOpcoes(Carta carta) {
     printf("Estado: %s\n", carta.estado);
     printf("Código: %s\n", carta.codigo);
     printf("Nome da Cidade: %s\n", carta.nomeCidade);
@@ -240,14 +231,17 @@ void exibirCarta(Carta carta) {
     printf("Área: %.2f km²\n", carta.area);
     printf("PIB: %.2f bilhões de reais\n", carta.pib);
     printf("Número de Pontos Turísticos: %d\n", carta.pontosTuristicos);
+    printf("\nEscolha um atributo para comparar:\n");
+    printf("1 - População\n");
+    printf("2 - Área\n");
+    printf("3 - PIB\n");
+    printf("4 - Número de Pontos Turísticos\n");
 }
 
 int lerEscolhaAtributo(const char *jogador) {
     int escolha;
     do {
-        printf("\n%s, escolha um atributo para comparar:\n", jogador);
-        printf("1 - População\n2 - Área\n3 - PIB\n4 - Número de Pontos Turísticos\n");
-        printf("Escolha: ");
+        printf("\n%s, escolha um atributo (1-4): ", jogador);
         if (scanf(" %d", &escolha) != 1) {
             while(getchar() != '\n');
             escolha = 0;
